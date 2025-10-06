@@ -88,7 +88,34 @@ def add_password(site: str, username: str, password: str) -> None:
         username: The account username for the site.
         password: The password to store.
     """
-    raise NotImplementedError("add_password is not yet implemented")
+    if not site:
+        raise ValueError("site must not be empty")
+    if not username:
+        raise ValueError("username must not be empty")
+    if not password:
+        raise ValueError("password must not be empty")
+
+    passwords_path = os.path.join(os.path.dirname(__file__), "data", "passwords.json")
+    os.makedirs(os.path.dirname(passwords_path), exist_ok=True)
+
+    try:
+        with open(passwords_path, "r", encoding="utf-8") as f:
+            records = json.load(f)
+            if not isinstance(records, list):
+                records = []
+    except FileNotFoundError:
+        records = []
+    except json.JSONDecodeError:
+        records = []
+
+    records.append({
+        "site": site,
+        "username": username,
+        "password": password, 
+    })
+
+    with open(passwords_path, "w", encoding="utf-8") as f:
+        json.dump(records, f, indent=2, sort_keys=False)
 
 
 def get_passwords() -> list[dict]:
