@@ -7,6 +7,53 @@ For now, it contains stubs that raise `NotImplementedError` and prints
 a greeting when executed.
 """
 
+import hashlib
+import json
+import os
+
+
+def _get_user_data_path() -> str:
+    """Return the path to the user data JSON file."""
+    return os.path.join(os.path.dirname(__file__), "data", "user_data.json")
+
+
+def _load_user_db() -> dict:
+    """Load user database from disk, returning an empty dict if missing/corrupt."""
+    path = _get_user_data_path()
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+    except json.JSONDecodeError:
+        return {}
+
+
+def _save_user_db(db: dict) -> None:
+    """Save user database to disk (creates the file if it does not exist)."""
+    path = _get_user_data_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(db, f, indent=2, sort_keys=True)
+
+
+def _hash_master_password(master_password: str) -> dict:
+    """Create a PBKDF2-SHA256 hash record for the given master password.
+
+    Returns a dict containing the KDF name, iterations, salt, and hash.
+    """
+    iterations = 200_000
+    salt = os.urandom(16)
+    derived_key = hashlib.pbkdf2_hmac(
+        "sha256", master_password.encode("utf-8"), salt, iterations
+    )
+    return {
+        "kdf": "pbkdf2_sha256",
+        "iterations": iterations,
+        "salt": salt.hex(),
+        "hash": derived_key.hex(),
+    }
+
 def register_user(username: str, master_password: str) -> None:
     """Register a new user with a master password.
 
@@ -17,7 +64,17 @@ def register_user(username: str, master_password: str) -> None:
         username: The username for the account.
         master_password: The master password to use.
     """
-    raise NotImplementedError("register_user is not yet implemented")
+    if not username:
+        raise ValueError("username must not be empty")
+    if not master_password:
+        raise ValueError("master_password must not be empty")
+
+    db = _load_user_db()
+    if username in db:
+        raise ValueError("user already exists")
+
+    db[username] = _hash_master_password(master_password)
+    _save_user_db(db)
 
 
 def add_password(site: str, username: str, password: str) -> None:
