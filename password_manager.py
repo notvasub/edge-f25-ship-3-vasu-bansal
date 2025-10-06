@@ -10,6 +10,7 @@ a greeting when executed.
 import hashlib
 import json
 import os
+import getpass
 
 
 def _get_user_data_path() -> str:
@@ -160,10 +161,50 @@ def get_passwords() -> list[dict]:
 def main() -> None:
     """Entry point for the password manager.
 
-    When run directly, this prints a greeting.  You will replace this
-    with registration, login and menu functionality in future ships.
+    Simple interactive menu to register users, add passwords, and view
+    stored passwords. This is a minimal, easy-to-use entry point.
     """
-    print("Welcome to the Password Manager!")
+    while True:
+        print("\nPassword Manager")
+        print("1) Register user")
+        print("2) Add password")
+        print("3) View passwords")
+        print("4) Exit")
+
+        choice = input("Choose an option (1-4): ").strip()
+
+        if choice == "1":
+            try:
+                username = input("Username: ").strip()
+                master_password = getpass.getpass("Master password: ")
+                register_user(username, master_password)
+                print("User registered.")
+            except ValueError as e:
+                print(f"Error: {e}")
+        elif choice == "2":
+            try:
+                site = input("Site: ").strip()
+                site_username = input("Site username: ").strip()
+                site_password = getpass.getpass("Site password: ")
+                add_password(site, site_username, site_password)
+                print("Password saved.")
+            except ValueError as e:
+                print(f"Error: {e}")
+        elif choice == "3":
+            records = get_passwords()
+            if not records:
+                print("No passwords stored.")
+            else:
+                for i, rec in enumerate(records, start=1):
+                    site = rec.get("site", "")
+                    uname = rec.get("username", "")
+                    pwd = rec.get("password", "")
+                    print(f"{i}. Site: {site} | Username: {uname} | Password: {pwd}")
+        elif choice == "4":
+            print("Goodbye.")
+            break
+        else:
+            print("Please enter a number from 1 to 4.")
 
 
 if __name__ == "__main__":

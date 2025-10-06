@@ -1,1 +1,8 @@
-{}
+{
+  "notvasub": {
+    "hash": "87e779a49abaab066cddaf9fad9109934aca8910997b01b62f8a853ed066d047",
+    "iterations": 200000,
+    "kdf": "pbkdf2_sha256",
+    "salt": "3782908f9b0b48d582c1e41faff9408d"
+  }
+}
