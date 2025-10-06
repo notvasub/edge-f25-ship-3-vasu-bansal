@@ -128,7 +128,33 @@ def get_passwords() -> list[dict]:
     Returns:
         A list of stored passwords.
     """
-    raise NotImplementedError("get_passwords is not yet implemented")
+    passwords_path = os.path.join(os.path.dirname(__file__), "data", "passwords.json")
+    try:
+        with open(passwords_path, "r", encoding="utf-8") as f:
+            records = json.load(f)
+    except FileNotFoundError:
+        return []
+    except json.JSONDecodeError:
+        return []
+
+    if not isinstance(records, list):
+        return []
+
+    cleaned: list[dict] = []
+    for item in records:
+        if not isinstance(item, dict):
+            continue
+        site = item.get("site")
+        username = item.get("username")
+        password = item.get("password")
+        if isinstance(site, str) and isinstance(username, str) and isinstance(password, str): # AI implemented the "isinstance" part for better error handling. 
+            cleaned.append({
+                "site": site,
+                "username": username,
+                "password": password,
+            })
+
+    return cleaned
 
 
 def main() -> None:
